@@ -122,7 +122,7 @@ class SSHD_Hash:
 
         # Save the self.tau dict, self.l_subset_dimension, and self.l_subset_a to a file
         if save_pickle:
-            tau_filename = self.file[7:-4] + "_sshd.obj"
+            tau_filename = "pickle_files/" + self.file[7:-4] + "_sshd.obj"
             fileObj = open(tau_filename, 'wb')
             save_object = {"tau": self.tau, "l_subset_dimension": self.l_subset_dimensions,
                            "l_subset_a": self.l_subset_a, "m": self.m}
@@ -199,10 +199,10 @@ class SSHD_Hash:
         # print(f"Length of set S: {len(S)}, Number of neighbors that pass threshold: {len(d)}")
         # k_items = heapq.nsmallest(k, d.items(), key=lambda item: item[1])
         result = set()
-        while len(result) <= k:
+        while len(result) < k:
             result.add(pq.poll())
 
-        return result # k_items
+        return result  # k_items
 
     def generate_hash_code(self, array: np.ndarray, index: int):
         """

@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 from collections import defaultdict
 from os.path import exists
-
+from PriorityQueue import PriorityQueue
 from scipy.spatial.distance import cityblock
 
 
@@ -113,7 +113,7 @@ class LSH_Hyperplane:
 
         # Pickle needs to save self.d, self.m, self.hyperplanes,
         if save_pickle:
-            tau_filename = self.file[7:-4] + "_hyper.obj"
+            tau_filename = "pickle_files/" + self.file[7:-4] + "_hyper.obj"
             fileObj = open(tau_filename, 'wb')
             save_object = {"tau": self.tau, "d": self.d, "m": self.m, "hyperplanes": self.hyperplanes}
             pickle.dump(save_object, fileObj)
@@ -183,6 +183,8 @@ class LSH_Hyperplane:
             hash_code = self.generate_hash_code(q_values, i)
             buckets.append(hash_code)
 
+        pq = PriorityQueue(True)
+
         # Iterate through the bucket list.  For each bucket entry, get all the points from that bucket
         # print(f"Retrieving nearest neighbors from buckets")
         for i in range(self.l):
@@ -192,8 +194,13 @@ class LSH_Hyperplane:
                 item_values = np.array(ast.literal_eval(item_line))
                 manhat_distance = cityblock(q_values, item_values)
                 if 0 < manhat_distance < self.DIST_THRESH:
-                    d[item] = manhat_distance
+                    # d[item] = manhat_distance
+                    pq.add(manhat_distance, item)
 
         # print(f"Length of set S: {len(S)}, Number of neighbors that pass threshold: {len(d)}")
-        k_items = heapq.nsmallest(k, d.items(), key=lambda item: item[1])
-        return k_items
+        # k_items = heapq.nsmallest(k, d.items(), key=lambda item: item[1])
+        result = set()
+        while len(result) <= k:
+            result.add(pq.poll())
+
+        return result #k_items
