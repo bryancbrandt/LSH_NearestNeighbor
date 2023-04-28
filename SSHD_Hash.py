@@ -25,7 +25,7 @@ class SSHD_Hash:
     min = 0  # Minimum value of the data
     max = 0  # Maximum value of the data
     file = ""  # The csv file to be loaded
-    num_dim_hash = 24  # Number of dimensions for the hash tables
+    num_dim_hash = 24  # Bit depth of the hash values
     tau = list(defaultdict(list))  # The set of hashtable
     l_subset_dimensions = []  # Dimensional subsets for I1,...,Il
     l_subset_a = []  # A values for h(x) hash calculation
@@ -152,7 +152,7 @@ class SSHD_Hash:
 
         print("File loaded successfully")
 
-    def ann_query(self, q: int, k: int):
+    def query(self, q: int, k: int):
         """
         Approximate Nearest Neighbor Query.
 

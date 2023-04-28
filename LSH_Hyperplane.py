@@ -1,5 +1,4 @@
 import ast
-import heapq
 import linecache
 import pickle
 
@@ -48,10 +47,10 @@ class LSH_Hyperplane:
 
     def load_csv_file(self):
         """
-               Loads the csv file, and sets all the class attributes
+        Loads the csv file, and sets all the class attributes
 
-               :return:
-               """
+        :return:
+        """
 
         # Load the Data
         print(f"Loading data file {self.file}")
@@ -81,7 +80,7 @@ class LSH_Hyperplane:
         print(f"Bucket size: {self.B}")
         print(f"M value: {self.m}")
 
-    def preprocess(self, save_pickle: bool):
+    def preprocess(self, save_pickle: bool=False):
         """
         Pre-process the Data.  This is the Preprocessing Algorithm from the paper
         :param save_pickle: True if we want to save the self.tau dict to a file
