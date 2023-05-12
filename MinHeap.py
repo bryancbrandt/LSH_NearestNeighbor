@@ -1,8 +1,11 @@
+# Similarity Search in High Dimensions via Hashing Implementation
+# Derived from the paper by Gionis, Indyk, Motwani, 1999
+# Bryan Brandt
+# CS738 2023
 """
 @author: HP
 https://github.com/sandeepPalagati/PriorityQueue/blob/master/MinHeap.py
 """
-
 
 class MinHeap:
     # HeapObject class that stores that wraps the key and value.

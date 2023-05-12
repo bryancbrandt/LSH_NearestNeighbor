@@ -1,3 +1,8 @@
+# Similarity Search in High Dimensions via Hashing Implementation
+# Derived from the paper by Gionis, Indyk, Motwani, 1999
+# Bryan Brandt
+# CS738 2023
+
 """
 @author: HP
 https://github.com/sandeepPalagati/PriorityQueue/blob/master/PriorityQueue.py

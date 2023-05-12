@@ -1,8 +1,18 @@
 # Similarity Search in High Dimensions via Hashing Implementation
 # Derived from the paper by Gionis, Indyk, Motwani, 1999
 # Bryan Brandt
-# CS7-- 2023
-# File for evaluation of algorithms
+# CS738 2023
+import os
+import pathlib
+
+
+from BallTree import BallT as ballTree
+from KDTree import KD as kdTree
+from CosineLSH import CosineLSH as cosineLSH
+from MinHash import MinHash_Continuous as minHash
+from LSH_Hyperplane import LSH_Hyperplane as hyperplaneLSH
+from SSHD_Hash import SSHD_Hash as sshdLSH
+
 from Distances import distances
 from LSH_Hyperplane import LSH_Hyperplane
 from os.path import exists
@@ -126,10 +136,26 @@ def evaluate_q_proximity_hyper(file: str = "", q: int = 1, k: int = 10):
     if not file_exists:
         raise IOError(f"{file} does not exist!")
 
-    hyper = lshHyperplane = LSH_Hyperplane(file, 8)
+    hyper = LSH_Hyperplane(file, 8)
     pickle_filename = "pickle_files/" + file[7:-4] + "_hyper.obj"
     hyper.load_pickle(pickle_filename)
     dist_list = hyper.ann_query(q, k)
     dist = distances(file)
     dist.process(q)
     dist.compare(dist_list)
+
+
+def process_them():
+    path = str(pathlib.Path(__file__).parent.absolute())
+    data_files = os.listdir(path+"//data")
+
+    for csv in data_files:
+        classes = []
+        classes.append(ballTree(csv, 2, False))
+        classes.append(kdTree(csv, 2, False))
+        classes.append(cosineLSH(csv, 32, 24, False))
+        classes.append(minHash(csv, verbose=False))
+
+
+if __name__ == "__main__":
+    process_them()

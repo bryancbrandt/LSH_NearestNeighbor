@@ -1,16 +1,17 @@
+# Similarity Search in High Dimensions via Hashing Implementation
+# Derived from the paper by Gionis, Indyk, Motwani, 1999
+# Bryan Brandt
+# CS738 2023
+
 import ast
 import linecache
 import pickle
 from collections import defaultdict
 from os.path import exists
-
 import numpy as np
-
 from PriorityQueue import PriorityQueue
 
 
-# TODO: This needs to be fixed to match the formatting of the other classes and their similar
-# methods such as random vector, etc... UPDATE
 class CosineLSH:
     n = 0  # Number of data points
     l = 32  # Number of hash tables
@@ -20,7 +21,7 @@ class CosineLSH:
     tau = list(defaultdict(list))
     verbose = False
     hyperplanes = []
-    DIST_THRESH = 5
+    DIST_THRESH = 100
 
     def __init__(self, file: str, num_tables: int = 32, bit_depth: int = 24, verbose: bool = False):
         assert num_tables > 0, "Number of hash tables must be greater than 0"
@@ -73,9 +74,8 @@ class CosineLSH:
 
     def preprocess(self, save_pickle: bool = True):
         """
-        Preprocess Method
+        Preprocesses the data
         :param save_pickle: True if we want to save the self.tau dict to a file
-        :return: nothing
         """
         if self.verbose:
             print()
@@ -93,26 +93,24 @@ class CosineLSH:
                 line_data = np.array(ast.literal_eval(i.strip()))
                 line_index += 1
                 for j in range(self.l):
-                    hash_code = self.hash(line_data, j)
+                    hash_code = self.generate_hash_code(line_data, j)
                     self.tau[j][hash_code].append(line_index)
 
         # Save the file if required to
         if save_pickle:
-            tau_filename = "pickle_files/" + self.file[7:-4] + "_cosine.obj"
+            tau_filename = "pickle_files/" + self.file[5:-4] + "_cosine.obj"
             fileObj = open(tau_filename, 'wb')
             save_object = {"tau": self.tau, "l": self.l, "hyperplanes": self.hyperplanes}
             pickle.dump(save_object, fileObj)
             fileObj.close()
             print(f"Tau saved to file {tau_filename} successfully")
 
-        print(self.tau)
-
-    def hash(self, vector: np.ndarray, l: int) -> str:
+    def generate_hash_code(self, vector: np.ndarray, l: int) -> str:
         """
-        Hash Method
-        :param l:
-        :param vector:
-        :return:
+        Generates a bit string hash code based on the passed vector
+        :param l: Determines which hyperplane set to use from the list of hyperplanes
+        :param vector: a vector with n-dimensions that a hash code will be generated for
+        :return: A hashcode string of length self.bit_depth using 1 and 0
         """
         hash_matrix = np.array(vector * self.hyperplanes[l])
         hash_code = str()
@@ -128,7 +126,6 @@ class CosineLSH:
         """
         Loads a formerly saved tau dictionary from disk, and sets it as the self.tau attribute
         :param file: the filename to be used
-        :return: null
         """
         file_exists = exists(file)
         if not file_exists:
@@ -148,9 +145,9 @@ class CosineLSH:
     def cosine_similarity(vec1, vec2):
         """
         Cosine Similarity
-        :param vec1:
-        :param vec2:
-        :return:
+        :param vec1: a vector to compare to vector 2
+        :param vec2: a vector to compare to vector 1
+        :return: Distance between vector 1 and 2 measured as cosine similarity
         """
         dot_product = np.dot(vec1, vec2)
         norm1 = np.linalg.norm(vec1)
@@ -159,10 +156,10 @@ class CosineLSH:
 
     def query(self, q, k):
         """
-
-        :param q:
-        :param k:
-        :return:
+        Find the k approximate nearest neighbors of q
+        :param q: an integer identifying the index number or line number in the file
+        :param k: an integer specifying the number of nearest neighbors
+        :return: A set containing tuples in the form of (line_index #, distance)
         """
         assert q > 0, "Error, query point index number must > 0"
         assert k > 1, "Error, number of neighbors must be > 1"
@@ -181,7 +178,7 @@ class CosineLSH:
 
         # Get the hash values for the point q, and add them to the list
         for i in range(self.l):
-            hash_val = self.hash(q_values, i)
+            hash_val = self.generate_hash_code(q_values, i)
             buckets.append(hash_val)
 
         pq = PriorityQueue(True)
@@ -207,65 +204,3 @@ class CosineLSH:
             result.add(pq.poll())
 
         return result
-
-
-"""
-# ////////////////////////////////////////////////////////////////////////////
-# create hash tables and fill them with the data
-# TODO: we need to save the random vectors so that their values
-# can be used later on for querying nearest neighbor values
-for i in range(num_tables):
-    table = {}
-    for j, vector in enumerate(data):
-        hash_val = self.hash(vector, hash_size)
-        if hash_val not in table:
-            table[hash_val] = [j]
-        else:
-            table[hash_val].append(j)
-self.tables.append(table)
-
-# The random tables need to be saved, and recalled
-def query(self, query_vec, num_neighbors):
-    candidates = set()
-    for i in range(self.num_tables):
-        hash_val = self.hash(query_vec, self.hash_size)
-        if hash_val in self.tables[i]:
-            candidates.update(self.tables[i][hash_val])
-
-    distances = []
-    for candidate in candidates:
-        dist = self.cosine_similarity(self.data[candidate], query_vec)
-        distances.append((candidate, dist))
-    distances.sort(key=lambda x: x[1], reverse=True)
-
-    return distances[:num_neighbors]
-
-# Hash value is the dot product of the vector multiplied by the data row
-# If value is >= 0 value is 1, if < 0 value is 0.  Values are combined
-# to get the hash code
-def hash(self, vector, hash_size):
-    rand_vec = np.random.normal(size=(hash_size, vector.shape[0]))
-    sim_scores = np.dot(rand_vec, vector)
-    sim_scores[sim_scores >= 0] = 1
-    sim_scores[sim_scores < 0] = 0
-    hash_val = int("".join(str(int(score)) for score in sim_scores), 2)
-    return hash_val
-
-# Cosine similarity is dot product / norm(vec1) * norm(vec2)
-def cosine_similarity(self, vec1, vec2):
-    dot_product = np.dot(vec1, vec2)
-    norm1 = np.linalg.norm(vec1)
-    norm2 = np.linalg.norm(vec2)
-    return dot_product / (norm1 * norm2)
-"""
-
-
-def main():
-    cos_lsh = CosineLSH("mdcgen/64_20000_RandDist_8Clusters.csv", verbose=True)
-    # cos_lsh.load_csv_file()
-    cos_lsh.load_pickle("pickle_files/64_20000_RandDist_8Clusters_cosine.obj")
-    print(cos_lsh.query(7000, 10))
-
-
-if __name__ == "__main__":
-    main()
